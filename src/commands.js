@@ -1,4 +1,5 @@
 require("dotenv").config();
+const { RULES } = require("./constants");
 const { REST, Routes, ApplicationCommandOptionType } = require("discord.js");
 
 const commands = [
@@ -11,6 +12,10 @@ const commands = [
 				description: "the rule you want",
 				type: ApplicationCommandOptionType.String,
 				required: true,
+				choices: RULES.map((rule) => ({
+					name: rule.name,
+					value: rule.name,
+				})),
 			},
 		],
 	},
