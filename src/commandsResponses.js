@@ -1,5 +1,5 @@
 const { client } = require("./index.js");
-const { executeCode } = require("./execute-code.js");
+const { RULES } = require("./constants.js");
 
 client.on("interactionCreate", (interaction) => {
 	if (!interaction.isChatInputCommand()) return;
@@ -8,19 +8,34 @@ client.on("interactionCreate", (interaction) => {
 
 async function giveRule(interaction) {
 	const data = interaction.options.data[0];
+	const rule = RULES.find((rule) => rule.name === data.value);
+	const randomQuestion =
+		rule.questions[Math.floor(Math.random() * rule.questions.length)];
 	const messageData = await interaction.reply(
-		`تمام جميل هديك سؤال دلوقت تحلو عشان اتأكد انك مش هباد 
-            السؤال ( سهل فشخ ) انك تكتب كود بال${data.value} بيدي output hello world
+		`تمام جميل هديك سؤال دلوقت تحلو عشان اتأكد انك مش هباد ( لو محلتوش راجع نفسك ياض )
+           ${rule.question ?? "السؤال انك تقول في كام error في السؤال ده :"}
+			\`\`\`${rule.language}\n${randomQuestion.code}\`\`\`
             `,
 	);
 
 	let init = true;
+	let done = false;
 
-	client.once("messageCreate", async (message) => {
+	client.on("messageCreate", async (message) => {
 		if (!init) return;
 		else init = false;
-		if (message.author.id !== messageData.interaction.user.id) return;
-		if (false) message.reply("؟؟؟ \n غلط يسطا عيد الcommand تاني");
-		message.reply(await executeCode(data.value, message.content));
+		if (done) return;
+		if (
+			message.author.id !== messageData.interaction.user.id ||
+			message.channelId !== messageData.interaction.channel.id
+		)
+			return;
+		if (message.content != randomQuestion.errors)
+			return message.reply("غلط يسطا عيد الcommand");
+		let role = message.guild.roles.cache.find(
+			(role) => role.name === rule.name,
+		);
+		message.member.roles.add(role);
+		message.reply("جامد اديتك الrule");
 	});
 }
